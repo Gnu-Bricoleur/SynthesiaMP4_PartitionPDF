@@ -9,6 +9,8 @@ import time
 #A decommenter en "Prod"
 #bashCommand = "avconv -i coldplay.mp4 -r 30 -f image2 pic/%04d.png"
 #os.system(bashCommand)
+#time.sleep(200000)
+
 
 liste_touches = []
 liste_touches_appuyes = []
@@ -48,10 +50,10 @@ liste_touches = [[14, 461], [38, 462], [63, 462], [84, 462], [111, 466], [134, 4
 
 #C 	D 	E 	F 	G 	A 	B
 liste_notes = ["c,,", "cis,,", "d,,", "dis,,", "e,,", "f,,", "fis,,", "g,,", "gis,,", "a,,", "ais,,", "b,,", \
-				"c,,", "cis,,", "d,,", "dis,,", "e,,", "f,,", "fis,,", "g,,", "gis,,", "a,,", "ais,,", "b,,", \
-				"c,,", "cis,,", "d,,", "dis,,", "e,,", "f,,", "fis,,", "g,,", "gis,,", "a,,", "ais,,", "b,,", \
-				"c,,", "cis,,", "d,,", "dis,,", "e,,", "f,,", "fis,,", "g,,", "gis,,", "a,,", "ais,,", "b,,", \
-				"c,,", "cis,,", "d,,", "dis,,", "e,,"]
+				"c,", "cis,", "d,", "dis,", "e,", "f,", "fis,", "g,", "gis,", "a,", "ais,", "b,", \
+				"c", "cis", "d", "dis", "e", "f", "fis", "g", "gis", "a", "ais", "b", \
+				"c'", "cis'", "d'", "dis'", "e'", "f'", "fis'", "g'", "gis'", "a'", "ais'", "b'", \
+				"c''", "cis''", "d''", "dis''", "e''"]
 
 print len(liste_touches)
 print len(liste_notes)
@@ -65,7 +67,7 @@ for nb in range(int(debut_video), int(fin_video)):
 	im = Image.open("pic/" + str(nb).zfill(4) + '.png')
 	for touche in liste_touches:
 		pix = im.getpixel((touche[0], touche[1]))
-		if pix == (0, 0, 0) or pix == (255, 255, 255):
+		if (pix[0] < 5 and pix[1] < 5 and pix[2] < 5) or (pix[0] > 250 and pix[1] > 250 and pix[2] > 250):
 			pass
 		else:
 			liste_touches_appuyes.append((touche[0], touche[1]))
@@ -82,16 +84,15 @@ fichier.write("\n{\n")
 
 
 for elt in liste_appuis[1:]:
+	texte = "< "
 	for note in elt:
-		print elt
 		if note in liste_appuis[liste_appuis.index(elt) - 1]:
 			pass
 		else:
-			print "note !"
-			print note
-			numnote = liste_touches.index(note)
-			fichier.write(liste_notes[numnote])
-			fichier.write(" ")
+			numnote = liste_touches.index([note[0],note[1]])
+			texte = texte + " " + liste_notes[numnote]
+	fichier.write(texte)
+	fichier.write("> ")
 
 
 fichier.write("\n}")
