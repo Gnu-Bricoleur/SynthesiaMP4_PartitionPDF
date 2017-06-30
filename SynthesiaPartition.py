@@ -13,11 +13,12 @@ import time
 
 
 liste_touches = []
-liste_touches_appuyes = []
+liste_touches_appuyes_droite = []
+liste_touches_appuyes_gauche = []
 debut_video = "0121"
-fin_video = "210"   #7510
-liste_appuis = []
-
+fin_video = "0410"   #7510
+liste_appuis_droite = []
+liste_appuis_gauche = []
 
 def clic(event):
 	liste_touches.append([event.x, event.y])
@@ -62,16 +63,24 @@ print len(liste_notes)
 
 
 for nb in range(int(debut_video), int(fin_video)):
-	liste_touches_appuyes = []
+	liste_touches_appuyes_droite = []
+	liste_touches_appuyes_gauche = []
 	print str(nb - int(debut_video)) + "/" + str (int(fin_video) - int(debut_video))
 	im = Image.open("pic/" + str(nb).zfill(4) + '.png')
 	for touche in liste_touches:
 		pix = im.getpixel((touche[0], touche[1]))
 		if (pix[0] < 5 and pix[1] < 5 and pix[2] < 5) or (pix[0] > 250 and pix[1] > 250 and pix[2] > 250):
 			pass
-		else:
-			liste_touches_appuyes.append((touche[0], touche[1]))
-	liste_appuis.append(liste_touches_appuyes)
+		else :
+			liste_touches_appuyes_gauche.append((touche[0], touche[1]))
+			liste_touches_appuyes_droite.append((touche[0], touche[1]))
+		#else:
+			#if pix[2] > 200:
+				#liste_touches_appuyes_gauche.append((touche[0], touche[1]))
+			#else :
+				#liste_touches_appuyes_droite.append((touche[0], touche[1]))
+	liste_appuis_droite.append(liste_touches_appuyes_droite)
+	liste_appuis_gauche.append(liste_touches_appuyes_gauche)
 	im.close()
 
 os.remove("partition.ly")
@@ -79,22 +88,43 @@ fichier = open("partition.ly", "a")
 
 
 fichier.write("\\version \"2.16.2\"")
+#fichier.write("\\relative c")
 fichier.write("\n{\n")
+fichier.write("<<")
+fichier.write("\\new Staff { \clef \"treble\" ")
 
 
 
-for elt in liste_appuis[1:]:
-	texte = "< "
+for elt in liste_appuis_droite[1:]:
+	texte = "<"
 	for note in elt:
-		if note in liste_appuis[liste_appuis.index(elt) - 1]:
+		if note in liste_appuis_droite[liste_appuis_droite.index(elt) - 1]:
+			pass
+		else:
+			print "got there !!"
+			numnote = liste_touches.index([note[0],note[1]])
+			texte = texte + " " + liste_notes[numnote]
+	fichier.write(texte)
+	fichier.write(" > ")
+
+fichier.write("\n}\n")
+fichier.write("\\new Staff { \clef \"bass\" ")
+
+
+for elt in liste_appuis_gauche[1:]:
+	texte = "<"
+	for note in elt:
+		if note in liste_appuis_gauche[liste_appuis_gauche.index(elt) - 1]:
 			pass
 		else:
 			numnote = liste_touches.index([note[0],note[1]])
 			texte = texte + " " + liste_notes[numnote]
 	fichier.write(texte)
-	fichier.write("> ")
+	fichier.write(" > ")
 
+fichier.write("\n}\n")
 
+fichier.write(">>")
 fichier.write("\n}")
 
 fichier.close()
