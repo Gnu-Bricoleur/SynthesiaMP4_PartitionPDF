@@ -3,7 +3,7 @@
 
 import os
 from Tkinter import*
-from PIL import Image
+from PIL import Image, ImageDraw
 import time
 
 #A decommenter en "Prod"
@@ -67,20 +67,25 @@ for nb in range(int(debut_video), int(fin_video)):
 	liste_touches_appuyes_gauche = []
 	print str(nb - int(debut_video)) + "/" + str (int(fin_video) - int(debut_video))
 	im = Image.open("pic/" + str(nb).zfill(4) + '.png')
+	draw = ImageDraw.Draw(im)
 	for touche in liste_touches:
 		pix = im.getpixel((touche[0], touche[1]))
 		if (pix[0] < 5 and pix[1] < 5 and pix[2] < 5) or (pix[0] > 250 and pix[1] > 250 and pix[2] > 250):
 			pass
-		else :
-			liste_touches_appuyes_gauche.append((touche[0], touche[1]))
-			liste_touches_appuyes_droite.append((touche[0], touche[1]))
-		#else:
-			#if pix[2] > 200:
-				#liste_touches_appuyes_gauche.append((touche[0], touche[1]))
-			#else :
-				#liste_touches_appuyes_droite.append((touche[0], touche[1]))
+		#else :
+			#draw.ellipse((touche[0]-10, touche[1]-10, touche[0]+10, touche[1]+10), fill=(255,0,0,255))
+			#liste_touches_appuyes_gauche.append((touche[0], touche[1]))
+			#liste_touches_appuyes_droite.append((touche[0], touche[1]))
+		else:
+			if pix[2] > 50:
+				draw.ellipse((touche[0]-10, touche[1]-10-40, touche[0]+10, touche[1]+10-40), fill=(255,0,0,255))
+				liste_touches_appuyes_gauche.append((touche[0], touche[1]))
+			else :
+				draw.ellipse((touche[0]-10, touche[1]-10-40, touche[0]+10, touche[1]+10-40), fill=(255,255,0,255))
+				liste_touches_appuyes_droite.append((touche[0], touche[1]))
 	liste_appuis_droite.append(liste_touches_appuyes_droite)
 	liste_appuis_gauche.append(liste_touches_appuyes_gauche)
+	im.save("pic/" + str(nb).zfill(4) + '.png',format="png")
 	im.close()
 
 os.remove("partition.ly")
@@ -94,31 +99,32 @@ fichier.write("<<")
 fichier.write("\\new Staff { \clef \"treble\" ")
 
 
-
+i = 1
 for elt in liste_appuis_droite[1:]:
 	texte = "<"
 	for note in elt:
-		if note in liste_appuis_droite[liste_appuis_droite.index(elt) - 1]:
+		if note in liste_appuis_droite[i - 1]:
 			pass
 		else:
-			print "got there !!"
 			numnote = liste_touches.index([note[0],note[1]])
 			texte = texte + " " + liste_notes[numnote]
+	i = i +1
 	fichier.write(texte)
 	fichier.write(" > ")
 
 fichier.write("\n}\n")
 fichier.write("\\new Staff { \clef \"bass\" ")
 
-
+i = 1
 for elt in liste_appuis_gauche[1:]:
 	texte = "<"
 	for note in elt:
-		if note in liste_appuis_gauche[liste_appuis_gauche.index(elt) - 1]:
+		if note in liste_appuis_gauche[i - 1]:
 			pass
 		else:
 			numnote = liste_touches.index([note[0],note[1]])
 			texte = texte + " " + liste_notes[numnote]
+	i = i + 1
 	fichier.write(texte)
 	fichier.write(" > ")
 
