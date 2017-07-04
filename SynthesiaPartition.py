@@ -19,6 +19,7 @@ debut_video = "0121"
 fin_video = "0410"   #7510
 liste_appuis_droite = []
 liste_appuis_gauche = []
+liste_sync = []
 
 def clic(event):
 	liste_touches.append([event.x, event.y])
@@ -65,6 +66,8 @@ print len(liste_notes)
 for nb in range(int(debut_video), int(fin_video)):
 	liste_touches_appuyes_droite = []
 	liste_touches_appuyes_gauche = []
+	sync_droite = False
+	sync_gauche = False
 	print str(nb - int(debut_video)) + "/" + str (int(fin_video) - int(debut_video))
 	im = Image.open("pic/" + str(nb).zfill(4) + '.png')
 	draw = ImageDraw.Draw(im)
@@ -83,10 +86,63 @@ for nb in range(int(debut_video), int(fin_video)):
 			else :
 				draw.ellipse((touche[0]-10, touche[1]-10-40, touche[0]+10, touche[1]+10-40), fill=(255,255,0,255))
 				liste_touches_appuyes_droite.append((touche[0], touche[1]))
+	
+	if liste_touches_appuyes_droite == []:
+		liste_touches_appuyes_droite.append((0,0))
+	elif liste_touches_appuyes_droite[-1] == (0,0):
+		sync_droite = True
+	
+	if liste_touches_appuyes_gauche == []:
+		liste_touches_appuyes_gauche.append((0,0))
+	elif liste_touches_appuyes_gauche[-1] == (0,0):
+		sync_gauche = True
+	
+	if sync_droite == True and sync_gauche == True:
+		liste_sync.append(len(liste_appuis_droite)+1)
+	
 	liste_appuis_droite.append(liste_touches_appuyes_droite)
 	liste_appuis_gauche.append(liste_touches_appuyes_gauche)
 	im.save("pic/" + str(nb).zfill(4) + '.png',format="png")
 	im.close()
+
+
+porte_droite = []
+porte_droite.append([liste_appuis_droite[0], 1])
+i = 1
+for elt in liste_appuis_droite[1:] :
+	if elt == liste_appuis_droite[i-1]:
+		porte_droite[-1][1] += 1
+	else:
+		porte_droite.append([elt,1])
+	i += 1
+
+
+porte_gauche = []
+porte_gauche.append([liste_appuis_gauche[0], 1])
+i = 1
+for elt in liste_appuis_gauche[1:] :
+	if elt == liste_appuis_gauche[i-1]:
+		porte_gauche[-1][1] += 1
+	else:
+		porte_gauche.append([elt,1])
+	i += 1
+
+liste_temps = []
+for elt in porte_droite:
+	if not( elt[1] in liste_temps ):
+		liste_temps.append(elt[1])
+for elt in porte_gauche:
+	if not( elt[1] in liste_temps ):
+		liste_temps.append(elt[1])
+
+liste_temps.sort()
+print liste_temps
+print liste_sync
+time.sleep(200)
+
+#[1, 2, 3, 4, 5, 6, 11, 13, 20, 21, 32, 39, 89, 90]
+
+
 
 os.remove("partition.ly")
 fichier = open("partition.ly", "a")
