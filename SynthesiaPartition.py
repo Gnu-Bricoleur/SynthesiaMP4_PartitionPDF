@@ -73,7 +73,7 @@ for nb in range(int(debut_video), int(fin_video)):
 	draw = ImageDraw.Draw(im)
 	for touche in liste_touches:
 		pix = im.getpixel((touche[0], touche[1]))
-		if (pix[0] < 5 and pix[1] < 5 and pix[2] < 5) or (pix[0] > 250 and pix[1] > 250 and pix[2] > 250):
+		if (pix[0] < 10 and pix[1] < 10 and pix[2] < 10) or (pix[0] > 245 and pix[1] > 245 and pix[2] > 245):
 			pass
 		#else :
 			#draw.ellipse((touche[0]-10, touche[1]-10, touche[0]+10, touche[1]+10), fill=(255,0,0,255))
@@ -81,50 +81,52 @@ for nb in range(int(debut_video), int(fin_video)):
 			#liste_touches_appuyes_droite.append((touche[0], touche[1]))
 		else:
 			if pix[2] > 50:
-				draw.ellipse((touche[0]-10, touche[1]-10-40, touche[0]+10, touche[1]+10-40), fill=(255,0,0,255))
+				draw.ellipse((touche[0]-10, touche[1]-10-80, touche[0]+10, touche[1]+10-80), fill=(255,0,0,255))
 				liste_touches_appuyes_gauche.append((touche[0], touche[1]))
 			else :
-				draw.ellipse((touche[0]-10, touche[1]-10-40, touche[0]+10, touche[1]+10-40), fill=(255,255,0,255))
+				draw.ellipse((touche[0]-10, touche[1]-10-80, touche[0]+10, touche[1]+10-80), fill=(255,255,0,255))
 				liste_touches_appuyes_droite.append((touche[0], touche[1]))
+	
 	
 	if liste_touches_appuyes_droite == []:
 		liste_touches_appuyes_droite.append((0,0))
-	elif liste_touches_appuyes_droite[-1] == (0,0):
+	elif liste_appuis_droite[-1] == [(0,0)]:
 		sync_droite = True
 	
 	if liste_touches_appuyes_gauche == []:
 		liste_touches_appuyes_gauche.append((0,0))
-	elif liste_touches_appuyes_gauche[-1] == (0,0):
+	elif liste_appuis_gauche[-1] == [(0,0)]:
 		sync_gauche = True
 	
-	if sync_droite == True and sync_gauche == True:
-		liste_sync.append(len(liste_appuis_droite)+1)
+	if (sync_droite == True) and (sync_gauche == True):
+		liste_sync.append(len(liste_appuis_droite))
 	
 	liste_appuis_droite.append(liste_touches_appuyes_droite)
 	liste_appuis_gauche.append(liste_touches_appuyes_gauche)
+	
 	im.save("pic/" + str(nb).zfill(4) + '.png',format="png")
 	im.close()
 
 
 porte_droite = []
-porte_droite.append([liste_appuis_droite[0], 1])
+porte_droite.append([liste_appuis_droite[0], 1,0])
 i = 1
 for elt in liste_appuis_droite[1:] :
 	if elt == liste_appuis_droite[i-1]:
 		porte_droite[-1][1] += 1
 	else:
-		porte_droite.append([elt,1])
+		porte_droite.append([elt,1,i])
 	i += 1
 
 
 porte_gauche = []
-porte_gauche.append([liste_appuis_gauche[0], 1])
+porte_gauche.append([liste_appuis_gauche[0], 1,0])
 i = 1
 for elt in liste_appuis_gauche[1:] :
 	if elt == liste_appuis_gauche[i-1]:
 		porte_gauche[-1][1] += 1
 	else:
-		porte_gauche.append([elt,1])
+		porte_gauche.append([elt,1,i])
 	i += 1
 
 liste_temps = []
@@ -138,9 +140,47 @@ for elt in porte_gauche:
 liste_temps.sort()
 print liste_temps
 print liste_sync
-time.sleep(200)
+print porte_droite
+
 
 #[1, 2, 3, 4, 5, 6, 11, 13, 20, 21, 32, 39, 89, 90]
+
+# note plus petite 12
+
+
+tab_duree = []
+
+
+note_plus_courte = 12
+note_plus_courte_temps = 8
+tab_temps_possibles = [8, 4, 2, 1, 0]
+
+for j in liste_temps:
+	for i in range(len(tab_temps_possibles)):
+		if note_plus_courte*i + note_plus_courte/2 <= j < note_plus_courte*(i+1) + note_plus_courte/2:
+			if (i) <= 0:
+				tab_duree.append("fermata")
+			else :
+				tab_duree.append(i)
+	if j < note_plus_courte/2:
+		tab_duree.append("rien")
+
+tab_duree = ["rien", "rien", "rien", "rien", "rien", 8, 8, 8, 4, 4, 2, 2, 1, 1]
+
+#ancienne version
+#for j in liste_temps:
+	#for i in range(note_plus_courte_temps)
+		#if note_plus_courte*i + note_plus_courte/2 <= j < note_plus_courte*(i+1) + note_plus_courte/2:
+			#if (note_plus_courte_temps - i) <= 0:
+				#tab_duree.append("fermata")
+			#else :
+				#tab_duree.append(note_plus_courte_temps - i)
+	#if j < note_plus_courte/2:
+		#tab_duree.append("rien")
+
+print tab_duree
+
+
 
 
 
@@ -155,38 +195,95 @@ fichier.write("<<")
 fichier.write("\\new Staff { \clef \"treble\" ")
 
 
-i = 1
-for elt in liste_appuis_droite[1:]:
+
+for accord in porte_droite:
 	texte = "<"
-	for note in elt:
-		if note in liste_appuis_droite[i - 1]:
+	accord_i = accord[:-2]
+	print accord
+	accord_i = accord[0]
+	for note in accord_i:
+		print note
+		if note == (0,0):
 			pass
-		else:
+		else :
 			numnote = liste_touches.index([note[0],note[1]])
 			texte = texte + " " + liste_notes[numnote]
-	i = i +1
 	fichier.write(texte)
-	fichier.write(" > ")
+	fichier.write(" >")
+	tps = accord[-2]
+	index_tps = liste_temps.index(tps)
+	if tab_duree[index_tps] == "rien":
+		pass
+	else:
+		truc = tab_duree[index_tps]
+		fichier.write(str(truc))
+	fichier.write(" ")
+
+
+
+# Ancienne version
+#i = 1
+#for elt in liste_appuis_droite[1:]:
+	#texte = "<"
+	#for note in elt:
+		#if note in liste_appuis_droite[i - 1]:
+			#pass
+		#else:
+			#numnote = liste_touches.index([note[0],note[1]])
+			#texte = texte + " " + liste_notes[numnote]
+	#i = i +1
+	#fichier.write(texte)
+	#fichier.write(" > ")
 
 fichier.write("\n}\n")
 fichier.write("\\new Staff { \clef \"bass\" ")
 
-i = 1
-for elt in liste_appuis_gauche[1:]:
+
+
+
+for accord in porte_gauche:
 	texte = "<"
-	for note in elt:
-		if note in liste_appuis_gauche[i - 1]:
+	accord_i = accord[:-2]
+	print accord
+	accord_i = accord[0]
+	for note in accord_i:
+		print note
+		if note == (0,0):
 			pass
-		else:
+		else :
 			numnote = liste_touches.index([note[0],note[1]])
 			texte = texte + " " + liste_notes[numnote]
-	i = i + 1
 	fichier.write(texte)
-	fichier.write(" > ")
+	fichier.write(" >")
+	tps = accord[-2]
+	index_tps = liste_temps.index(tps)
+	if tab_duree[index_tps] == "rien":
+		pass
+	else:
+		truc = tab_duree[index_tps]
+		fichier.write(str(truc))
+	fichier.write(" ")
+
+
+
+# Ancienne version
+#i = 1
+#for elt in liste_appuis_gauche[1:]:
+	#texte = "<"
+	#for note in elt:
+		#if note in liste_appuis_gauche[i - 1]:
+			#pass
+		#else:
+			#numnote = liste_touches.index([note[0],note[1]])
+			#texte = texte + " " + liste_notes[numnote]
+	#i = i + 1
+	#fichier.write(texte)
+	#fichier.write(" > ")
 
 fichier.write("\n}\n")
 
-fichier.write(">>")
+fichier.write(">>\n")
+fichier.write("\layout{} \n \midi{}")
 fichier.write("\n}")
 
 fichier.close()
